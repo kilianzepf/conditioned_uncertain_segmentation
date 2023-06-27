@@ -2,7 +2,7 @@
 
 Kilian Zepf, Eike Petersen, Jes Frellsen, Aasa Feragen, ICLR 2023
 
-[[Paper]]([https://arxiv.org/abs/2103.16265](https://openreview.net/pdf?id=wZ2SVhOTzBX))
+[[Paper on OpenReview]](https://openreview.net/pdf?id=wZ2SVhOTzBX)
 
 <img src="img/schematic_models.png"  width="800" >
 
