@@ -16,8 +16,8 @@ from data.dataset_phc_style import PHC_style
 from metadata_manager import *
 
 # TODO: commented out because cv2 problems
-# from data.dataset_isic_style import *
-# from data.dataset_isic import *
+from data.dataset_isic_style import *
+from data.dataset_isic import *
 from data.dataset_phc_style import *
 from data.dataset_phc import *
 

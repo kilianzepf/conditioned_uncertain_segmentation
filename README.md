@@ -4,6 +4,8 @@ Kilian Zepf, Eike Petersen, Jes Frellsen, Aasa Feragen, ICLR 2023
 
 [[Paper]]([https://arxiv.org/abs/2103.16265](https://openreview.net/pdf?id=wZ2SVhOTzBX))
 
+<img src="img/schematic_models.png"  width="400" >
+
 This repository contains the code for the experiments presented in the paper as well as a new datasets for studying varying label styles in uncertain image segmentation. The code is based on PyTorch. 
 
 ## Dependencies
