@@ -16,13 +16,14 @@ pip install -r requirements.txt
 
 ## Data
 
-Download the datasets by running
+Download the datasets by running the following commands from the home directory
 
 ```
-./scripts/download_data.sh
+python data/phc_data/download_phc_dataset.py 
+python data/isic3/download_isic3.py 
 ```
 
-This will downoad the isic and PhC-U373 datasets and unpack them to `./data/`
+This will downoad the isic and PhC-U373 datasets and unpack them to `./data/`.
 
 ## Train (conditioned) uncertain segmentation models
 

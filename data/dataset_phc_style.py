@@ -17,20 +17,19 @@ PhC Dataset
 
 class PHC_style(torch.utils.data.Dataset):
     def __init__(self, transform, apply_symmetric_transforms, data_path):
-
         # Initialization
         self.transform = transform
         self.symmetric_transforms = apply_symmetric_transforms
 
         # Image List
         # all image paths stored in a list
-        image_paths = sorted(glob.glob(data_path + '/images/*'))
-        annotator1_paths = sorted(glob.glob(data_path + '/labels/*'))
-        annotator2_paths = sorted(glob.glob(data_path + '/aasa/*'))
-        annotator3_paths = sorted(glob.glob(data_path + '/kilian_fine/*'))
-        annotator4_paths = sorted(glob.glob(data_path + '/kilian_coarse/*'))
-        annotator5_paths = sorted(glob.glob(data_path + '/eike/*'))
-        annotator6_paths = sorted(glob.glob(data_path + '/aasa_coarse/*'))
+        image_paths = sorted(glob.glob(data_path + "/images/*"))
+        annotator1_paths = sorted(glob.glob(data_path + "/fine1/*"))
+        annotator2_paths = sorted(glob.glob(data_path + "/fine2/*"))
+        annotator3_paths = sorted(glob.glob(data_path + "/fine3/*"))
+        annotator4_paths = sorted(glob.glob(data_path + "/coarse1/*"))
+        annotator5_paths = sorted(glob.glob(data_path + "/coarse2/*"))
+        annotator6_paths = sorted(glob.glob(data_path + "/coarse3/*"))
 
         annotator1_style = [0] * len(image_paths)  # 0
         annotator2_style = [0] * len(image_paths)  # 0
@@ -39,37 +38,49 @@ class PHC_style(torch.utils.data.Dataset):
         annotator5_style = [1] * len(image_paths)  # 1
         annotator6_style = [1] * len(image_paths)  # 1
 
-        self.image_paths = 6*image_paths
-        self.all_annotator_paths = annotator1_paths+annotator2_paths + \
-            annotator3_paths+annotator4_paths+annotator5_paths+annotator6_paths
-        all_annotator_styles = annotator1_style+annotator2_style + \
-            annotator3_style+annotator4_style+annotator5_style+annotator6_style
+        self.image_paths = 6 * image_paths
+        self.all_annotator_paths = (
+            annotator1_paths
+            + annotator2_paths
+            + annotator3_paths
+            + annotator4_paths
+            + annotator5_paths
+            + annotator6_paths
+        )
+        all_annotator_styles = (
+            annotator1_style
+            + annotator2_style
+            + annotator3_style
+            + annotator4_style
+            + annotator5_style
+            + annotator6_style
+        )
 
         self.all_annotator_styles = all_annotator_styles
-        self.annotator1_paths = 6*annotator1_paths
-        self.annotator2_paths = 6*annotator2_paths
-        self.annotator3_paths = 6*annotator3_paths
-        self.annotator4_paths = 6*annotator4_paths
-        self.annotator5_paths = 6*annotator5_paths
-        self.annotator6_paths = 6*annotator6_paths
+        self.annotator1_paths = 6 * annotator1_paths
+        self.annotator2_paths = 6 * annotator2_paths
+        self.annotator3_paths = 6 * annotator3_paths
+        self.annotator4_paths = 6 * annotator4_paths
+        self.annotator5_paths = 6 * annotator5_paths
+        self.annotator6_paths = 6 * annotator6_paths
 
     def symmetric_augmentation(self, images_and_masks=[]):
         """
-        Applies affine transformations for image and masks. 
+        Applies affine transformations for image and masks.
 
         Args:
-            images_and_masks: (list of torch.tensors) images and masks to transform            
+            images_and_masks: (list of torch.tensors) images and masks to transform
         Returns:
             List of torch.tensors that are transformed in the same way (symmetric) and therefore suitable for semantic segmentation
 
         """
 
         # Random Horizontal Flip
-        if (np.random.random() > 0.5):
+        if np.random.random() > 0.5:
             images_and_masks = [TF.hflip(x) for x in images_and_masks]
 
         # Random Vertical Flip
-        if (np.random.random() > 0.5):
+        if np.random.random() > 0.5:
             images_and_masks = [TF.vflip(x) for x in images_and_masks]
 
         # Shift/Scale/Rotate Randomly
@@ -78,8 +89,12 @@ class PHC_style(torch.utils.data.Dataset):
         scale = random.uniform(0.9, 1.1)  # prev 0.9 1.1
         shear = (random.uniform(-0.3, 0.3), random.uniform(-0.3, 0.3))
 
-        images_and_masks = [TF.affine(x, angle=angle, translate=translation, scale=scale, shear=shear, fill=0)
-                            for x in images_and_masks]
+        images_and_masks = [
+            TF.affine(
+                x, angle=angle, translate=translation, scale=scale, shear=shear, fill=0
+            )
+            for x in images_and_masks
+        ]
 
         return images_and_masks
 
@@ -92,7 +107,16 @@ class PHC_style(torch.utils.data.Dataset):
         target4_path = self.annotator4_paths[idx]
         target5_path = self.annotator5_paths[idx]
         target6_path = self.annotator6_paths[idx]
-        return image_path, all_path, target1_path, target2_path, target3_path, target4_path, target5_path, target6_path
+        return (
+            image_path,
+            all_path,
+            target1_path,
+            target2_path,
+            target3_path,
+            target4_path,
+            target5_path,
+            target6_path,
+        )
 
     def __len__(self):
         # Returns the total number of samples in the DataSet
@@ -111,8 +135,16 @@ class PHC_style(torch.utils.data.Dataset):
         target5_path = self.annotator5_paths[idx]
         target6_path = self.annotator6_paths[idx]
 
-        path_list = [image_path, target_path, target1_path, target2_path,
-                     target3_path, target4_path, target5_path, target6_path]
+        path_list = [
+            image_path,
+            target_path,
+            target1_path,
+            target2_path,
+            target3_path,
+            target4_path,
+            target5_path,
+            target6_path,
+        ]
 
         def path_to_image(path):
             img = Image.open(path)  # Read in with Pillow
@@ -121,7 +153,7 @@ class PHC_style(torch.utils.data.Dataset):
         # Prepares images
         def pil_image(x):
             x = path_to_image(x)
-            #x = x.astype('int16')
+            # x = x.astype('int16')
             return x
 
         def to_tensor_trafo(x):
@@ -130,12 +162,20 @@ class PHC_style(torch.utils.data.Dataset):
             return x
 
         pil_image_list = [pil_image(x) for x in path_list]
-        image, target, target1, target2, target3, target4, target5, target6 = pil_image_list
+        (
+            image,
+            target,
+            target1,
+            target2,
+            target3,
+            target4,
+            target5,
+            target6,
+        ) = pil_image_list
 
         # Activate symmetric transformations for Data Augmentation, see method description of symmetric_augmentation
         if self.symmetric_transforms:
-            pil_image_list = self.symmetric_augmentation(
-                pil_image_list)
+            pil_image_list = self.symmetric_augmentation(pil_image_list)
 
         # Transform style variable to numerical values and Torch Tensor (f =0, m=1, p=2)
         style = torch.as_tensor(style)
@@ -143,16 +183,27 @@ class PHC_style(torch.utils.data.Dataset):
         image, target, target1, target2, target3, target4, target5, target6 = final_list
 
         # Normalize each patch by its mean and variance and set intensities to 0 that are more then 3 stds away
-        #mean = torch.mean(image)
-        #std = torch.std(image)
-        #image = (image-mean)/(3*std)
-       # image = TF.normalize(image, torch.mean(image), torch.std(image))
-        return image, target, [target1, target2, target3, target4, target5, target6], style
+        # mean = torch.mean(image)
+        # std = torch.std(image)
+        # image = (image-mean)/(3*std)
+        # image = TF.normalize(image, torch.mean(image), torch.std(image))
+        return (
+            image,
+            target,
+            [target1, target2, target3, target4, target5, target6],
+            style,
+        )
 
 
 class PHC_style_subset(torch.utils.data.Dataset):
-    def __init__(self, transform, apply_symmetric_transforms, data_path, style, return_all_annotations=True):
-
+    def __init__(
+        self,
+        transform,
+        apply_symmetric_transforms,
+        data_path,
+        style,
+        return_all_annotations=True,
+    ):
         # Initialization
         self.transform = transform
         self.symmetric_transforms = apply_symmetric_transforms
@@ -160,16 +211,14 @@ class PHC_style_subset(torch.utils.data.Dataset):
         self.return_all_annotations = return_all_annotations
         # Image List
         # all image paths stored in a list
-        image_paths = sorted(glob.glob(data_path + '/images/*'))
+        image_paths = sorted(glob.glob(data_path + "/images/*"))
 
-        
-        annotator1_paths = sorted(glob.glob(data_path + '/labels/*'))
-        annotator2_paths = sorted(glob.glob(data_path + '/aasa/*'))
-        annotator3_paths = sorted(glob.glob(data_path + '/kilian_fine/*'))
-        annotator4_paths = sorted(
-            glob.glob(data_path + '/kilian_coarse/*'))
-        annotator5_paths = sorted(glob.glob(data_path + '/eike/*'))
-        annotator6_paths = sorted(glob.glob(data_path + '/aasa_coarse/*'))
+        annotator1_paths = sorted(glob.glob(data_path + "/labels/*"))
+        annotator2_paths = sorted(glob.glob(data_path + "/aasa/*"))
+        annotator3_paths = sorted(glob.glob(data_path + "/kilian_fine/*"))
+        annotator4_paths = sorted(glob.glob(data_path + "/kilian_coarse/*"))
+        annotator5_paths = sorted(glob.glob(data_path + "/eike/*"))
+        annotator6_paths = sorted(glob.glob(data_path + "/aasa_coarse/*"))
         annotator1_style = [0] * len(image_paths)  # 0
         annotator2_style = [0] * len(image_paths)  # 0
         annotator3_style = [0] * len(image_paths)  # 0
@@ -177,7 +226,7 @@ class PHC_style_subset(torch.utils.data.Dataset):
         annotator5_style = [1] * len(image_paths)  # 1
         annotator6_style = [1] * len(image_paths)  # 1
         self.image_paths = image_paths
-        #self.all_annotator_paths = annotator4_paths+annotator5_paths
+        # self.all_annotator_paths = annotator4_paths+annotator5_paths
         self.annotator1_paths = annotator1_paths
         self.annotator2_paths = annotator2_paths
         self.annotator3_paths = annotator3_paths
@@ -185,28 +234,33 @@ class PHC_style_subset(torch.utils.data.Dataset):
         self.annotator5_paths = annotator5_paths
         self.annotator6_paths = annotator6_paths
         if style == 0:
-            all_annotator_styles = annotator1_style+annotator2_style+annotator3_style
+            all_annotator_styles = (
+                annotator1_style + annotator2_style + annotator3_style
+            )
             self.all_annotator_styles = all_annotator_styles
         if style == 1:
-            all_annotator_styles = annotator4_style+annotator5_style+annotator6_style
+            all_annotator_styles = (
+                annotator4_style + annotator5_style + annotator6_style
+            )
             self.all_annotator_styles = all_annotator_styles
+
     def symmetric_augmentation(self, images_and_masks=[]):
         """
-        Applies affine transformations for image and masks. 
+        Applies affine transformations for image and masks.
 
         Args:
-            images_and_masks: (list of torch.tensors) images and masks to transform            
+            images_and_masks: (list of torch.tensors) images and masks to transform
         Returns:
             List of torch.tensors that are transformed in the same way (symmetric) and therefore suitable for semantic segmentation
 
         """
 
         # Random Horizontal Flip
-        if (np.random.random() > 0.5):
+        if np.random.random() > 0.5:
             images_and_masks = [TF.hflip(x) for x in images_and_masks]
 
         # Random Vertical Flip
-        if (np.random.random() > 0.5):
+        if np.random.random() > 0.5:
             images_and_masks = [TF.vflip(x) for x in images_and_masks]
 
         # Shift/Scale/Rotate Randomly
@@ -215,8 +269,12 @@ class PHC_style_subset(torch.utils.data.Dataset):
         scale = random.uniform(0.9, 1.1)  # prev 0.9 1.1
         shear = (random.uniform(-0.3, 0.3), random.uniform(-0.3, 0.3))
 
-        images_and_masks = [TF.affine(x, angle=angle, translate=translation, scale=scale, shear=shear, fill=0)
-                            for x in images_and_masks]
+        images_and_masks = [
+            TF.affine(
+                x, angle=angle, translate=translation, scale=scale, shear=shear, fill=0
+            )
+            for x in images_and_masks
+        ]
 
         return images_and_masks
 
@@ -229,7 +287,16 @@ class PHC_style_subset(torch.utils.data.Dataset):
         target4_path = self.annotator4_paths[idx]
         target5_path = self.annotator5_paths[idx]
         target6_path = self.annotator6_paths[idx]
-        return image_path, all_path, target1_path, target2_path, target3_path, target4_path, target5_path, target6_path
+        return (
+            image_path,
+            all_path,
+            target1_path,
+            target2_path,
+            target3_path,
+            target4_path,
+            target5_path,
+            target6_path,
+        )
 
     def __len__(self):
         # Returns the total number of samples in the DataSet
@@ -239,7 +306,7 @@ class PHC_style_subset(torch.utils.data.Dataset):
         # Generates one sample of data
 
         image_path = self.image_paths[idx]
-        #target_path = self.all_annotator_paths[idx]
+        # target_path = self.all_annotator_paths[idx]
         style = self.all_annotator_styles[idx]
         target1_path = self.annotator1_paths[idx]
         target2_path = self.annotator2_paths[idx]
@@ -248,8 +315,15 @@ class PHC_style_subset(torch.utils.data.Dataset):
         target5_path = self.annotator5_paths[idx]
         target6_path = self.annotator6_paths[idx]
 
-        path_list = [image_path, target1_path, target2_path, target3_path, target4_path, target5_path, target6_path]
-        
+        path_list = [
+            image_path,
+            target1_path,
+            target2_path,
+            target3_path,
+            target4_path,
+            target5_path,
+            target6_path,
+        ]
 
         def path_to_image(path):
             img = Image.open(path)  # Read in with Pillow
@@ -258,7 +332,7 @@ class PHC_style_subset(torch.utils.data.Dataset):
         # Prepares images
         def pil_image(x):
             x = path_to_image(x)
-            #x = x.astype('int16')
+            # x = x.astype('int16')
             return x
 
         def to_tensor_trafo(x):
@@ -267,47 +341,64 @@ class PHC_style_subset(torch.utils.data.Dataset):
             return x
 
         pil_image_list = [pil_image(x) for x in path_list]
-      
+
         image, target1, target2, target3, target4, target5, target6 = pil_image_list
-      
+
         # Activate symmetric transformations for Data Augmentation, see method description of symmetric_augmentation
         if self.symmetric_transforms:
-            pil_image_list = self.symmetric_augmentation(
-                pil_image_list)
+            pil_image_list = self.symmetric_augmentation(pil_image_list)
 
-     
-     
         final_list = [to_tensor_trafo(x) for x in pil_image_list]
         if self.style == 0:
             image, target1, target2, target3, target4, target5, target6 = final_list
             if self.return_all_annotations == True:
-                return image, [target1, target2, target3][torch.randint(3, ())], [target1, target2, target3, target4, target5, target6], torch.as_tensor([0])
+                return (
+                    image,
+                    [target1, target2, target3][torch.randint(3, ())],
+                    [target1, target2, target3, target4, target5, target6],
+                    torch.as_tensor([0]),
+                )
             else:
-                return image, [target1, target2, target3][torch.randint(3, ())], [], torch.as_tensor([0])
+                return (
+                    image,
+                    [target1, target2, target3][torch.randint(3, ())],
+                    [],
+                    torch.as_tensor([0]),
+                )
         if self.style == 1:
             image, target1, target2, target3, target4, target5, target6 = final_list
             if self.return_all_annotations == True:
-                return image, [target4, target5, target6][torch.randint(2, ())], [target1, target2, target3, target4, target5, target6], torch.as_tensor([1])
+                return (
+                    image,
+                    [target4, target5, target6][torch.randint(2, ())],
+                    [target1, target2, target3, target4, target5, target6],
+                    torch.as_tensor([1]),
+                )
             else:
-                return image, [target4, target5, target6][torch.randint(2, ())], [], torch.as_tensor([1])
+                return (
+                    image,
+                    [target4, target5, target6][torch.randint(2, ())],
+                    [],
+                    torch.as_tensor([1]),
+                )
         # Normalize each patch by its mean and variance and set intensities to 0 that are more then 3 stds away
-        #mean = torch.mean(image)
-        #std = torch.std(image)
-        #image = (image-mean)/(3*std)
-       # image = TF.normalize(image, torch.mean(image), torch.std(image))
+        # mean = torch.mean(image)
+        # std = torch.std(image)
+        # image = (image-mean)/(3*std)
+
+    # image = TF.normalize(image, torch.mean(image), torch.std(image))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     trafo = transforms.Compose([transforms.ToTensor()])
-    data_path = '/home/kmze/style_probunet/data/phc_data'
-    dataset = PHC_style(trafo, apply_symmetric_transforms=False,
-                        data_path=data_path)
+    data_path = "/home/kmze/conditioned_uncertain_segmentation/data/phc_data/phc_data"
+    dataset = PHC_style(trafo, apply_symmetric_transforms=False, data_path=data_path)
     print(len(dataset))
     img, mask, rest, style = dataset[5]
     print(mask.shape)
     print(dataset.get_pathnahme(5))
     print(len(rest))
     dataset = PHC_style_subset(
-        trafo, apply_symmetric_transforms=False, data_path=data_path, style=1)
+        trafo, apply_symmetric_transforms=False, data_path=data_path, style=1
+    )
     print(len(dataset))
-    
