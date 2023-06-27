@@ -4,9 +4,12 @@ Kilian Zepf, Eike Petersen, Jes Frellsen, Aasa Feragen, ICLR 2023
 
 [[Paper on OpenReview]](https://openreview.net/pdf?id=wZ2SVhOTzBX)
 
+
+This repository contains the models presented in the paper as well as a new datasets for studying varying label styles in uncertain image segmentation. The code is based on PyTorch. 
+
 <img src="img/schematic_models.png"  width="800" >
 
-This repository contains the code for the experiments presented in the paper as well as a new datasets for studying varying label styles in uncertain image segmentation. The code is based on PyTorch. 
+Figure: Schematic model architectures (adapted from Kohl et al. (2018) and Monteiro et al. (2020)) of the prob. U-net (a) and SSN (b) during inference time. Our modifications to the models are shown in green. (c) illustrates a normal distribution over the logit pixel space.
 
 ## Dependencies
 
