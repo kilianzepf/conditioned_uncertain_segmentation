@@ -3,7 +3,6 @@ import torch
 import torch.distributions as td
 import numpy as np
 
-# from models.unet import UNet
 from utils.utils import *
 from models.unet import Unet
 
@@ -28,8 +27,6 @@ class StyleStochasticUnet(nn.Module):
         conv_fn = nn.Conv2d
         # whether to use only the diagonal (independent normals)
         self.diagonal = diagonal
-        # num_filters = [8,16,32,64] num_classes = 1
-        # Substituted 2*(1,) with 1
         self.mean_l = conv_fn(num_filters[0], num_classes, kernel_size=1)
         self.log_cov_diag_l = conv_fn(num_filters[0], num_classes, kernel_size=1)
         self.cov_factor_l = conv_fn(num_filters[0], num_classes * rank, kernel_size=1)
@@ -121,7 +118,6 @@ class StyleStochasticUnet(nn.Module):
                     loc=mean, cov_factor=cov_factor, cov_diag=cov_diag
                 )
             except:
-                # print(traceback.format_exc())
                 print(
                     "Covariance became not invertible using independent normals for this batch!"
                 )

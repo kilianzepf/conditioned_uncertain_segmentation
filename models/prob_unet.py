@@ -7,7 +7,6 @@ import torch.nn as nn
 import torchvision.transforms.functional as TF
 from torch.distributions import Normal, Independent, kl
 
-# import models.unet as unet_model
 import models.unet as unets
 from utils.utils import *
 
@@ -20,8 +19,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class Encoder(nn.Module):
     """
-    A convolutional neural network, consisting of len(num_filters) times a block of no_convs_per_block convolutional layers,
-    after each block a pooling operation is performed. And after each convolutional layer a non-linear (ReLU) activation function is applied.
+    A CNN, consisting of len(num_filters) times a block of no_convs_per_block conv layers.
     """
 
     def __init__(
@@ -29,7 +27,6 @@ class Encoder(nn.Module):
         input_channels,
         num_filters,
         no_convs_per_block,
-        initializers,
         padding=True,
         posterior=False,
     ):
@@ -165,7 +162,7 @@ class AxisAlignedConvGaussian(nn.Module):
 class Fcomb(nn.Module):
     """
     A function composed of no_convs_fcomb times a 1x1 convolution that combines the sample taken from the latent space,
-    and output of the UNet (the feature map) by concatenating them along their channel axis.
+    and output of the U-net (the feature map) by concatenating them along their channel axis.
     """
 
     def __init__(
@@ -263,15 +260,6 @@ class Fcomb(nn.Module):
 
 
 class ProbabilisticUnet(nn.Module):
-    """
-    A probabilistic UNet (https://arxiv.org/abs/1806.05034) implementation.
-    input_channels: the number of channels in the image (1 for greyscale and 3 for RGB)
-    num_classes: the number of classes to predict
-    num_filters: is a list consisint of the amount of filters layer
-    latent_dim: dimension of the latent space
-    no_cons_per_block: no convs per block in the (convolutional) encoder of prior and posterior
-    """
-
     def __init__(
         self,
         name,
@@ -407,7 +395,7 @@ class ProbabilisticUnet(nn.Module):
 
         criterion = nn.BCEWithLogitsLoss(
             size_average=False, reduce=False, reduction=None
-        )  # pos_weight=torch.tensor(2.0)
+        )
         z_posterior = self.posterior_latent_space.rsample()
 
         self.kl = torch.mean(

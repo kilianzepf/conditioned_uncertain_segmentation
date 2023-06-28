@@ -3,11 +3,9 @@ import torch
 from torch._C import device
 import torch.nn as nn
 
-# import torchvision.datasets as datasets
 import torchvision.transforms.functional as TF
 from torch.distributions import Normal, Independent, kl
 
-# import models.unet as unet_model
 import models.unet as unets
 from utils.utils import *
 
@@ -17,8 +15,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class Encoder(nn.Module):
     """
-    A convolutional neural network, consisting of len(num_filters) times a block of no_convs_per_block convolutional layers,
-    after each block a pooling operation is performed. And after each convolutional layer a non-linear (ReLU) activation function is applied.
+    A CNN, consisting of len(num_filters) times a block of no_convs_per_block conv layers.
     """
 
     def __init__(
@@ -26,7 +23,6 @@ class Encoder(nn.Module):
         input_channels,
         num_filters,
         no_convs_per_block,
-        initializers,
         padding=True,
         posterior=False,
     ):
@@ -193,7 +189,7 @@ class AxisAlignedConvGaussian(nn.Module):
 class Fcomb(nn.Module):
     """
     A function composed of no_convs_fcomb times a 1x1 convolution that combines the sample taken from the latent space,
-    and output of the UNet (the feature map) by concatenating them along their channel axis.
+    and output of the U-net (the feature map) by concatenating them along their channel axis.
     """
 
     def __init__(
@@ -253,7 +249,6 @@ class Fcomb(nn.Module):
         """
         This function is taken form PyTorch forum and mimics the behavior of tf.tile.
         Source: https://discuss.pytorch.org/t/how-to-tile-a-tensor/13853/3
-        Tile means Fliese in Deutsch
         """
         init_dim = a.size(dim)
         repeat_idx = [1] * a.dim()
@@ -290,15 +285,6 @@ class Fcomb(nn.Module):
 
 
 class Style_ProbabilisticUnet(nn.Module):
-    """
-    A probabilistic UNet (https://arxiv.org/abs/1806.05034) implementation.
-    input_channels: the number of channels in the image (1 for greyscale and 3 for RGB)
-    num_classes: the number of classes to predict
-    num_filters: is a list consisint of the amount of filters layer
-    latent_dim: dimension of the latent space
-    no_cons_per_block: no convs per block in the (convolutional) encoder of prior and posterior
-    """
-
     def __init__(
         self,
         name,
@@ -432,7 +418,6 @@ class Style_ProbabilisticUnet(nn.Module):
         Calculate the evidence lower bound of the log-likelihood of P(Y|X)
         """
 
-        # pos_weight=torch.tensor(2.0)
         criterion = nn.BCEWithLogitsLoss(reduction="none")
         z_posterior = self.posterior_latent_space.rsample()
 
