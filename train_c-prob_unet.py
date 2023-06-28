@@ -308,19 +308,6 @@ if __name__ == "__main__":
         wandb.login()
 
     # Read in Metadata for the task chosen in command line
-    """
-    Example:
-    Available meta data (example is kidney)
-            'description': '            Kidney dataset from Qubiq21',
-            'training_data_path':       'data/data_qubiq/training_data_v3_QC/kidney/Training',
-            'validation_data_path':     'data/data_qubiq/training_data_v3_QC/kidney/Training',
-            'test_data_path':           None,
-            'masking_threshold':        0.5,
-            'image_size':               497,
-            'admissible_size':          572,
-            'output_size':              484,
-            'directory_name':           'kidney'
-    """
     meta_dict = get_meta(what_task)
     meta = SimpleNamespace(**meta_dict)
 
@@ -333,7 +320,7 @@ if __name__ == "__main__":
         weight_decay=weight_decay,
         latent_dimension=latentdim,
         loss="(Elbo) Reconstruction Loss: BCEWithLogitsLoss / KL",
-        architecture="Style Probabilistic U-Net",
+        architecture="Conditioned Probabilistic U-net",
         dataset=meta.description,
         filters=num_filters,
     )
@@ -341,8 +328,8 @@ if __name__ == "__main__":
     if W:
         # Create the Training Run in Wandb
         wandb.init(
-            project="Style ProbUnet",
-            group="Style Probabilistic Unets",
+            project="labelstyle_iclr23",
+            group="Conditioned Probabilistic U-net",
             job_type="Training",
             config=config,
             dir="/scratch/kmze",

@@ -7,22 +7,20 @@ from datetime import datetime
 import torch
 from torch._C import device
 import torch.nn as nn
-import torchvision.transforms.functional as TF
 import torch.optim as optim
 
-# Import own files
 from metadata_manager import *
 from utils.utils import *
 from utils.metrics import *
 from models.c_ssn import StyleStochasticUnet
 from dataloaders import *
-import evaluate_ssn
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--what",
-    default="prostate1",
-    help="Available [kidney, prostate1,...]. Default is prostate1.",
+    default="isic3_style_concat",
+    help="Dataset to train on.",
 )
 parser.add_argument(
     "--lr",
@@ -179,7 +177,7 @@ def train(
             # wandb.log({"Estimated Mean Vector of Batch" : wandb.Histogram(mean)}, step=iterations)
             # wandb.log({"Estimated cov_factor Vector of Batch" : wandb.Histogram(cov_factor)}, step=iterations)
             # wandb.log({"Estimated cov_diag Vector of Batch" : wandb.Histogram(cov_diag)}, step=iterations)
-            wandb.log(logging_infos_of_that_step, step=iterations)
+            # wandb.log(logging_infos_of_that_step, step=iterations)
 
             # Log images, targets and predictions to wandb every fifty epochs
             if (epoch % 50 == 0) and (counter == 2):
@@ -250,8 +248,6 @@ def train(
                 seg_dist = [x.to(device) for x in seg_dist]
 
                 # IoU/Loss on Image Level
-                # outputs logits (the mean of the distribution)
-                # TODO: You cannot choose the label_style during test time! Sample it from randint(1-3)?
                 logits, output_dict, _ = model(images, style_label)
                 logit_distribution = output_dict["distribution"]
                 pred_mask = (torch.sigmoid(logits)).ge(meta.masking_threshold)
@@ -336,19 +332,6 @@ if __name__ == "__main__":
 
         wandb.login()
     # Read in Metadata for the task chosen in command line
-    """
-    Example:
-    Available meta data (example is kidney)
-            'description': '            Kidney dataset from Qubiq21',
-            'training_data_path':       'data/data_qubiq/training_data_v3_QC/kidney/Training',
-            'validation_data_path':     'data/data_qubiq/training_data_v3_QC/kidney/Training',
-            'test_data_path':           None,
-            'masking_threshold':        0.5,
-            'image_size':               497,
-            'admissible_size':          572,
-            'output_size':              484,
-            'directory_name':           'kidney'
-    """
     meta_dict = get_meta(what_task)
     meta = SimpleNamespace(**meta_dict)
 
@@ -360,7 +343,7 @@ if __name__ == "__main__":
         learning_rate=learning_rate,
         weight_decay=weight_decay,
         loss="See Paper",
-        architecture="Style Stochastic Segmentation Network (V2)",
+        architecture="Conditioned SSN",
         dataset=meta.description,
         N_for_metrics=forward_passes,
         rank=rank,
@@ -370,8 +353,8 @@ if __name__ == "__main__":
     if W:
         # Create the Training Run in Wandb
         wandb.init(
-            project="Style ProbUnet",
-            group="SSN Unets",
+            project="labelstyle_iclr23",
+            group="SSN U-nets",
             job_type="Training",
             config=config,
             dir="/scratch/kmze",
@@ -395,7 +378,6 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"\nUsing the {meta.description} dataset.\n")
 
-    # TODO: Substitute this by a set_seed method for all training/inference scripts
     # Set the random seed for reproducible experiments
     torch.manual_seed(230)
     if device == "cuda":

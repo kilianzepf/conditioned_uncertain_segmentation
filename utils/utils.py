@@ -27,14 +27,22 @@ def pad_to_admissible_size(x, image_size, admissible_size):
         v_margin = admissible_size[0] - image_size[0]
         h_margin = admissible_size[1] - image_size[1]
         # if margin is not even, pad one more pixel on the right/up than on the left/down
-        pads = (int(math.floor(h_margin/2)), int(math.ceil(h_margin/2)),
-                int(math.floor(v_margin/2)), int(math.ceil(v_margin/2)))
+        pads = (
+            int(math.floor(h_margin / 2)),
+            int(math.ceil(h_margin / 2)),
+            int(math.floor(v_margin / 2)),
+            int(math.ceil(v_margin / 2)),
+        )
         out = F.pad(x, pads, "constant", 0)
     else:
         margin = admissible_size - image_size
         # if margin is not even, pad one more pixel on the right/up than on the left/down
-        pads = (int(math.floor(margin/2)), int(math.ceil(margin/2)),
-                int(math.floor(margin/2)), int(math.ceil(margin/2)))
+        pads = (
+            int(math.floor(margin / 2)),
+            int(math.ceil(margin / 2)),
+            int(math.floor(margin / 2)),
+            int(math.ceil(margin / 2)),
+        )
         out = F.pad(x, pads, "constant", 0)
     return out, pads
 
@@ -44,23 +52,31 @@ def pad_to_image_size(output, image_size, output_size):
         v_margin = image_size[0] - output_size[0]
         h_margin = image_size[1] - output_size[1]
         # if margin is not even, pad one more pixel on the right/up than on the left/down
-        pads = (int(math.floor(h_margin/2)), int(math.ceil(h_margin/2)),
-                int(math.floor(v_margin/2)), int(math.ceil(v_margin/2)))
+        pads = (
+            int(math.floor(h_margin / 2)),
+            int(math.ceil(h_margin / 2)),
+            int(math.floor(v_margin / 2)),
+            int(math.ceil(v_margin / 2)),
+        )
         out = F.pad(output, pads, "constant", 0)
     else:
         margin = image_size - output_size
         # if margin is not even, pad one more pixel on the right/up than on the left/down
-        pads = (int(math.floor(margin/2)), int(math.ceil(margin/2)),
-                int(math.floor(margin/2)), int(math.ceil(margin/2)))
+        pads = (
+            int(math.floor(margin / 2)),
+            int(math.ceil(margin / 2)),
+            int(math.floor(margin / 2)),
+            int(math.ceil(margin / 2)),
+        )
         out = F.pad(output, pads, "constant", 0)
     return out, pads
 
 
 def unpad(x, pad):
-    if pad[2]+pad[3] > 0:
-        x = x[:, :, pad[2]:-pad[3], :]
-    if pad[0]+pad[1] > 0:
-        x = x[:, :, :, pad[0]:-pad[1]]
+    if pad[2] + pad[3] > 0:
+        x = x[:, :, pad[2] : -pad[3], :]
+    if pad[0] + pad[1] > 0:
+        x = x[:, :, :, pad[0] : -pad[1]]
     return x
 
 
@@ -76,14 +92,22 @@ def get_pads_to_original_size(image_size, output_size):
         v_margin = image_size[0] - output_size[0]
         h_margin = image_size[1] - output_size[1]
         # if margin is not even, pad one more pixel on the right/up than on the left/down
-        pads = (int(math.floor(h_margin/2)), int(math.ceil(h_margin/2)),
-                int(math.floor(v_margin/2)), int(math.ceil(v_margin/2)))
+        pads = (
+            int(math.floor(h_margin / 2)),
+            int(math.ceil(h_margin / 2)),
+            int(math.floor(v_margin / 2)),
+            int(math.ceil(v_margin / 2)),
+        )
         return pads
     else:
         margin = image_size - output_size
         # if margin is not even, pad one more pixel on the right/up than on the left/down
-        pads = (int(math.floor(margin/2)), int(math.ceil(margin/2)),
-                int(math.floor(margin/2)), int(math.ceil(margin/2)))
+        pads = (
+            int(math.floor(margin / 2)),
+            int(math.ceil(margin / 2)),
+            int(math.floor(margin / 2)),
+            int(math.ceil(margin / 2)),
+        )
 
         return pads
 
@@ -105,9 +129,11 @@ def make_image_grid(images, masks, predictions, required_padding):
     """
     grid_img = torchvision.utils.make_grid(images, len(images))
     grid_target = torchvision.utils.make_grid(
-        F.pad(masks, required_padding, "constant", 0), len(masks))
+        F.pad(masks, required_padding, "constant", 0), len(masks)
+    )
     grid_pred = torchvision.utils.make_grid(
-        F.pad(predictions, required_padding, "constant", 0), len(predictions))
+        F.pad(predictions, required_padding, "constant", 0), len(predictions)
+    )
     grid = torch.stack([grid_img, grid_target, grid_pred])
     grid = torchvision.utils.make_grid(grid, 1)
 
@@ -127,7 +153,8 @@ def make_image_grid_with_heatmaps(images, masks, predictions, required_padding):
     grid_img = torchvision.utils.make_grid(images, len(images))
     grid_target = torchvision.utils.make_grid(masks, len(masks))
     grid_pred = torchvision.utils.make_grid(
-        F.pad(predictions, required_padding, "constant", 0), len(predictions))
+        F.pad(predictions, required_padding, "constant", 0), len(predictions)
+    )
     grid = torch.stack([grid_img, grid_target, grid_pred])
     grid = torchvision.utils.make_grid(grid, 1)
 
@@ -150,9 +177,9 @@ def truncated_normal_(tensor, mean=0, std=1):
 
 def init_weights(m):
     if type(m) == nn.Conv2d or type(m) == nn.ConvTranspose2d:
-        nn.init.kaiming_normal_(m.weight, mode='fan_in', nonlinearity='relu')
-        #nn.init.normal_(m.weight, std=0.001)
-        #nn.init.normal_(m.bias, std=0.001)
+        nn.init.kaiming_normal_(m.weight, mode="fan_in", nonlinearity="relu")
+        # nn.init.normal_(m.weight, std=0.001)
+        # nn.init.normal_(m.bias, std=0.001)
         truncated_normal_(m.bias, mean=0, std=0.001)
 
 
@@ -160,7 +187,7 @@ def init_weights_orthogonal_normal(m):
     if type(m) == nn.Conv2d or type(m) == nn.ConvTranspose2d:
         nn.init.orthogonal_(m.weight)
         truncated_normal_(m.bias, mean=0, std=0.001)
-        #nn.init.normal_(m.bias, std=0.001)
+        # nn.init.normal_(m.bias, std=0.001)
 
 
 def l2_regularisation(m):
@@ -175,10 +202,10 @@ def l2_regularisation(m):
 
 
 def save_mask_prediction_example(mask, pred, iter):
-    plt.imshow(pred[0, :, :], cmap='Greys')
-    plt.savefig('images/'+str(iter)+"_prediction.png")
-    plt.imshow(mask[0, :, :], cmap='Greys')
-    plt.savefig('images/'+str(iter)+"_mask.png")
+    plt.imshow(pred[0, :, :], cmap="Greys")
+    plt.savefig("images/" + str(iter) + "_prediction.png")
+    plt.imshow(mask[0, :, :], cmap="Greys")
+    plt.savefig("images/" + str(iter) + "_mask.png")
 
 
 """
@@ -187,7 +214,14 @@ SSN Implementation https://github.com/biomedia-mira/stochastic_segmentation_netw
 
 
 class SSNCrossEntropyLoss(nn.CrossEntropyLoss):
-    def __init__(self, weight=None, size_average=None, ignore_index=-100, reduce=None, reduction='mean'):
+    def __init__(
+        self,
+        weight=None,
+        size_average=None,
+        ignore_index=-100,
+        reduce=None,
+        reduction="mean",
+    ):
         super().__init__(weight, size_average, ignore_index, reduce, reduction)
 
     def forward(self, logits: torch.tensor, target: torch.tensor, **kwargs):
@@ -212,40 +246,41 @@ class StochasticSegmentationNetworkLossMCIntegral(nn.Module):
         num_classes = logits.shape[1]
 
         logit_sample = self.fixed_re_parametrization_trick(
-            distribution, self.num_mc_samples)
+            distribution, self.num_mc_samples
+        )
         target = target.unsqueeze(1)
         target = target.expand((self.num_mc_samples,) + target.shape)
-        #print(f"target size in loss calc is {target.size()}")
         flat_size = self.num_mc_samples * batch_size
         logit_sample = logit_sample.view((flat_size, num_classes, -1))
-        #print(f"logit sample in loss calc is {logit_sample.size()}")
         target = target.reshape((flat_size, -1))
-        #print(f"target size after reshape in loss calc is {target.size()}")
         target = target.unsqueeze(1)
-        #print(f"target size after unsqueeze in loss calc is {target.size()}")
-        # print(
-        #    f"Target size is now {target.size()} and logits size is {logit_sample.size()}")
-
         log_prob = -F.binary_cross_entropy_with_logits(
-            logit_sample, target, reduction='none').view((self.num_mc_samples, batch_size, -1))
-        # log_prob = -F.cross_entropy(logit_sample, target, reduction='none').view(
-        #    (self.num_mc_samples, batch_size, -1))
-        print(f"log_prob max is {log_prob.max()} and min {log_prob.min()}")
-        loglikelihood = torch.mean(torch.logsumexp(
-            torch.sum(log_prob, dim=-1), dim=0) - math.log(self.num_mc_samples))
+            logit_sample, target, reduction="none"
+        ).view((self.num_mc_samples, batch_size, -1))
+
+        loglikelihood = torch.mean(
+            torch.logsumexp(torch.sum(log_prob, dim=-1), dim=0)
+            - math.log(self.num_mc_samples)
+        )
         loss = -loglikelihood
-        print(f"neg loglikelihood is {loss} \n")
+
         return loss
 
 
 class ReshapedDistribution(td.Distribution):
-    def __init__(self, base_distribution, new_event_shape):
-
-        super().__init__(batch_shape=base_distribution.batch_shape,
-                         event_shape=new_event_shape, validate_args=False)
+    def __init__(
+        self,
+        base_distribution: td.Distribution,
+        new_event_shape: Tuple[int, ...],
+        validate_args=None,
+    ):
+        super().__init__(
+            batch_shape=base_distribution.batch_shape,
+            event_shape=new_event_shape,
+            validate_args=validate_args,
+        )
         self.base_distribution = base_distribution
         self.new_shape = base_distribution.batch_shape + new_event_shape
-        # print(dir(self.base_distribution))
 
     @property
     def support(self):
@@ -253,8 +288,7 @@ class ReshapedDistribution(td.Distribution):
 
     @property
     def arg_constraints(self):
-        # print(dir(self))
-        return self.base_distribution.arg_constraints
+        return self.base_distribution.arg_constraints()
 
     @property
     def mean(self):
@@ -265,26 +299,12 @@ class ReshapedDistribution(td.Distribution):
         return self.base_distribution.variance.view(self.new_shape)
 
     def rsample(self, sample_shape=torch.Size()):
-        return self.base_distribution.rsample(sample_shape).view(sample_shape + self.new_shape)
+        return self.base_distribution.rsample(sample_shape).view(
+            sample_shape + self.new_shape
+        )
 
     def log_prob(self, value):
         return self.base_distribution.log_prob(value.view(self.batch_shape + (-1,)))
 
     def entropy(self):
         return self.base_distribution.entropy()
-
-
-def dice_loss_2(y_real, y_pred):
-
-    y_pred = torch.sigmoid(y_pred)
-
-    intersection = torch.mean(2 * y_pred*y_real + 1e-6)
-
-    bottom = torch.mean(y_pred + y_real + 1e-6)
-    #dice = (1/(256*256)) *(2.*intersection + smooth)/(torch.sum(y_pred, dim =[2,3])+torch.sum(y_real, dim =[2,3]) + smooth)
-
-    return 1-torch.mean((intersection/bottom))
-
-
-if __name__ == '__main__':
-    pass
