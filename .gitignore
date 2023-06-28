@@ -2,3 +2,9 @@
 /data/phc_data
 /data/PhC-U373
 
+/utils/__pycache__
+/models/__pycache__
+/data/__pycache__
+/__pycache__
+
+/saved_models

@@ -23,6 +23,7 @@ class Encoder(nn.Module):
         input_channels,
         num_filters,
         no_convs_per_block,
+        initializers,
         padding=True,
         posterior=False,
     ):

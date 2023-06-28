@@ -7,7 +7,6 @@ from datetime import datetime
 import torch
 from torch._C import device
 import torch.nn as nn
-import torchvision.transforms.functional as TF
 
 # Import own files
 from metadata_manager import *
@@ -15,61 +14,117 @@ from utils.utils import *
 from utils.metrics import *
 from models.prob_unet import *
 from dataloaders import *
-import evaluate_prob_unet
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--what', default='prostate1',
-                    help="Available [kidney, prostate1,...]. Default is prostate1.")
-parser.add_argument('--lr', default=0.0001, type=float,
-                    help="Learning Rate for Training. Default is 0.0001")
-parser.add_argument('--epochs', default=200, type=int,
-                    help="Number of Epochs to train. Default is 200")
-parser.add_argument('--batchsize', default=6, type=int,
-                    help="Number of Samples per Batch. Default is 6")
-parser.add_argument('--weightdecay', default=0, type=float,
-                    help="Parameter for Weight Decay. Default is 0")
-parser.add_argument('--resume_epoch', default=0, type=int,
-                    help="Resume training at the specified epoch. Default is 0")
-parser.add_argument('--save_model', default=False, type=bool,
-                    help="Set True if checkpoints should be saved. Default is False")
-parser.add_argument('--testit', default=False, type=bool,
-                    help="Set True testing the trained model on the testset. Default is False")
-parser.add_argument('--test_treshold', default=0.5, type=float,
-                    help="Treshold for masking the logid/sigmoid predictions. Only use with --testit. Default is 0.5")
-parser.add_argument('--N', default=16, type=int,
-                    help="Number of Samples for GED Metric. Default is 16")
-parser.add_argument('--W', default=1, type=int,
-                    help="Set 0 to turn off Weights and Biases. Default is 1 (tracking)")
-parser.add_argument('--transfer', default="None",
-                    help="Activates transfer learning when given a model's name. Default is None (no transfer learning)")
-parser.add_argument('--num_filters', default=[32, 64, 128, 192], nargs='+',
-                    help='Number of filters per layer. Default is [32,64,128,192]', type=int)
-parser.add_argument('--beta', default=10.0, type=float,
-                    help="Beta for ELBO calculation . Default is 10")
+parser.add_argument(
+    "--what",
+    default="isic3_style_concat",
+    help="Dataset to train on.",
+)
+parser.add_argument(
+    "--lr",
+    default=0.0001,
+    type=float,
+    help="Learning Rate for Training. Default is 0.0001",
+)
+parser.add_argument(
+    "--epochs", default=200, type=int, help="Number of Epochs to train. Default is 200"
+)
+parser.add_argument(
+    "--batchsize", default=6, type=int, help="Number of Samples per Batch. Default is 6"
+)
+parser.add_argument(
+    "--weightdecay",
+    default=0,
+    type=float,
+    help="Parameter for Weight Decay. Default is 0",
+)
+parser.add_argument(
+    "--resume_epoch",
+    default=0,
+    type=int,
+    help="Resume training at the specified epoch. Default is 0",
+)
+parser.add_argument(
+    "--save_model",
+    default=False,
+    type=bool,
+    help="Set True if checkpoints should be saved. Default is False",
+)
+parser.add_argument(
+    "--testit",
+    default=False,
+    type=bool,
+    help="Set True testing the trained model on the testset. Default is False",
+)
+parser.add_argument(
+    "--test_treshold",
+    default=0.5,
+    type=float,
+    help="Treshold for masking the logid/sigmoid predictions. Only use with --testit. Default is 0.5",
+)
+parser.add_argument(
+    "--N", default=16, type=int, help="Number of Samples for GED Metric. Default is 16"
+)
+parser.add_argument(
+    "--W",
+    default=1,
+    type=int,
+    help="Set 0 to turn off Weights and Biases. Default is 1 (tracking)",
+)
+parser.add_argument(
+    "--transfer",
+    default="None",
+    help="Activates transfer learning when given a model's name. Default is None (no transfer learning)",
+)
+parser.add_argument(
+    "--num_filters",
+    default=[32, 64, 128, 192],
+    nargs="+",
+    help="Number of filters per layer. Default is [32,64,128,192]",
+    type=int,
+)
+parser.add_argument(
+    "--beta", default=10.0, type=float, help="Beta for ELBO calculation . Default is 10"
+)
 
 
-def train(model, resume_epoch, epochs, opt, train_loader, val_loader, save_checkpoints, transfer_model, metadata, forward_passes, W=True):
+def train(
+    model,
+    resume_epoch,
+    epochs,
+    opt,
+    train_loader,
+    val_loader,
+    save_checkpoints,
+    transfer_model,
+    metadata,
+    forward_passes,
+    W=True,
+):
     # Set device to Cuda if GPU is available
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Check if want to resume prior checkpoints
     if resume_epoch > 0:
-        print(f'Resuming training on epoch {resume_epoch} ... \n')
+        print(f"Resuming training on epoch {resume_epoch} ... \n")
         # Load Checkpoint
         checkpoint = torch.load(
-            f"checkpoints/{meta.directory_name}/{model.name}/{resume_epoch}_checkpoint.pt")
+            f"checkpoints/{meta.directory_name}/{model.name}/{resume_epoch}_checkpoint.pt"
+        )
         # Inject checkpoint to model and optimizer
-        model.load_state_dict(checkpoint['model_state_dict'])
-        opt.load_state_dict(checkpoint['optimizer_state_dict'])
-        epoch = checkpoint['epoch']
-        loss = checkpoint['loss']
+        model.load_state_dict(checkpoint["model_state_dict"])
+        opt.load_state_dict(checkpoint["optimizer_state_dict"])
+        epoch = checkpoint["epoch"]
+        loss = checkpoint["loss"]
     if transfer_model != "None":
         print(f"Continue Training on the model {transfer_model}...\n")
         transfer_dict = torch.load(
-            f"saved_models/{meta.directory_name}/{transfer_model}.pt")
-        model = transfer_dict['model']
-        opt = transfer_dict['optimizer']
-        loss = transfer_dict['loss']
+            f"saved_models/{meta.directory_name}/{transfer_model}.pt"
+        )
+        model = transfer_dict["model"]
+        opt = transfer_dict["optimizer"]
+        loss = transfer_dict["loss"]
     else:
         print(f"Training from scratch...\n")
 
@@ -88,21 +143,20 @@ def train(model, resume_epoch, epochs, opt, train_loader, val_loader, save_check
             images = images.to(device)
             masks = masks.to(device)
 
-            # Crop Targets for Loss Calculation
-            #masks = TF.center_crop(masks, output_size=meta.output_size)
-
-            # Given by implementation of Stefan Knegt
             model.forward(images, masks, training=True)
             # Calculate the Elbo
             elbo = model.elbo(masks)
 
             # Get the prediction used for reconstruction loss (generated by a z from the distribution parametrized by the current posterior net)
             logits = model.reconstruction  # these are logits
-            # Treshold at (default kidney 0.5) to get a binary prediction
+            # Treshold to get a binary prediction
             pred_mask = torch.sigmoid(logits).ge(meta.masking_threshold)
-            # This is L2 regularization/weight decay on the Convolutional NN we use (ensures the quality of the functions/NN not the VAE in general)
-            reg_loss = l2_regularisation(
-                model.posterior) + l2_regularisation(model.prior) + l2_regularisation(model.fcomb.layers)
+            # This is L2 regularization/weight decay
+            reg_loss = (
+                l2_regularisation(model.posterior)
+                + l2_regularisation(model.prior)
+                + l2_regularisation(model.fcomb.layers)
+            )
             loss = -elbo + 1e-5 * reg_loss
             # Set parameter gradients to None
             opt.zero_grad(set_to_none=True)
@@ -110,39 +164,62 @@ def train(model, resume_epoch, epochs, opt, train_loader, val_loader, save_check
             loss.backward()
             opt.step()
 
-            # Calculate Average Loss and IoU for Wandb
+            # Calculate Average Loss and IoU
             sum_batch_loss += loss
             batch_IoU = IoU(masks, pred_mask)
             sum_batch_IoU += batch_IoU
 
             # Log images, targets and predictions to wandb every 5 epochs
             if (epoch % 50 == 0) and (counter == 1):
-                grid = make_image_grid(images, masks, torch.sigmoid(
-                    logits), required_padding=(0, 0, 0, 0))
+                grid = make_image_grid(
+                    images, masks, torch.sigmoid(logits), required_padding=(0, 0, 0, 0)
+                )
                 if W:
-                    wandb.log({"Images during Training": [wandb.Image(
-                        grid, caption="Images, Targets, Prediction used for Elbo calculation")]}, step=epoch)
+                    wandb.log(
+                        {
+                            "Images during Training": [
+                                wandb.Image(
+                                    grid,
+                                    caption="Images, Targets, Prediction used for Elbo calculation",
+                                )
+                            ]
+                        },
+                        step=epoch,
+                    )
 
         # Log the average loss of all batches in the epoch to Wandb
         if W:
-            wandb.log({"Average Loss per Epoch while Training": sum_batch_loss/(len(train_loader)),
-                      "Average IoU per Epoch while Training": sum_batch_IoU/(len(train_loader))}, step=epoch)
+            wandb.log(
+                {
+                    "Average Loss per Epoch while Training": sum_batch_loss
+                    / (len(train_loader)),
+                    "Average IoU per Epoch while Training": sum_batch_IoU
+                    / (len(train_loader)),
+                },
+                step=epoch,
+            )
 
         if save_checkpoints == True:
             os.makedirs(
-                f"checkpoints/{meta.directory_name}/{model.name}", exist_ok=True)
-            torch.save({
-                'epoch': epoch+1,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': opt.state_dict(),
-                'loss': loss,
-            }, f"checkpoints/{meta.directory_name}/{model.name}/{epoch+1}_checkpoint.pt")
+                f"checkpoints/{meta.directory_name}/{model.name}", exist_ok=True
+            )
+            torch.save(
+                {
+                    "epoch": epoch + 1,
+                    "model_state_dict": model.state_dict(),
+                    "optimizer_state_dict": opt.state_dict(),
+                    "loss": loss,
+                },
+                f"checkpoints/{meta.directory_name}/{model.name}/{epoch+1}_checkpoint.pt",
+            )
 
         # Save the model after last training epoch (for inference or transfer training) to a folder
-        if epoch == epochs-1:
+        if epoch == epochs - 1:
             os.makedirs(f"saved_models/{meta.directory_name}", exist_ok=True)
-            torch.save({'model': model, 'optimizer': opt, 'loss': loss},
-                       f"saved_models/{meta.directory_name}/{model.name}.pt")
+            torch.save(
+                {"model": model, "optimizer": opt, "loss": loss},
+                f"saved_models/{meta.directory_name}/{model.name}.pt",
+            )
 
         """
         Evaluate on the validation set and track to see if overfitting happens
@@ -160,37 +237,46 @@ def train(model, resume_epoch, epochs, opt, train_loader, val_loader, save_check
                 masks = masks.to(device)
                 seg_dist = [x.to(device) for x in seg_dist]
 
-                # Crop Targets for Loss Calculation
-                #masks = TF.center_crop(masks, output_size=meta.output_size)
-                # seg_dist = [TF.center_crop(
-                #    masks, output_size=meta.output_size) for x in seg_dist]
-
                 # IoU/Loss on Image Level
                 model.forward(images, masks, training=False)  # outputs logits
                 logits = model.sample(testing=True)
                 pred_mask = (torch.sigmoid(logits)).ge(meta.masking_threshold)
                 # Calculate Loss
-                # loss_function = nn.BCEWithLogitsLoss(
-                #    pos_weight=torch.tensor(2.0))
                 loss_function = nn.BCEWithLogitsLoss()
                 sum_IoU += IoU(masks, pred_mask)
                 sum_loss += loss_function(logits, masks)
 
                 # Log images, targets and predictions of the first batch to wandb every 50 epochs
                 if (epoch % 50 == 0) and (counter == 2):
-                    grid = make_image_grid(images, masks, torch.sigmoid(
-                        logits), required_padding=(0, 0, 0, 0))
+                    grid = make_image_grid(
+                        images,
+                        masks,
+                        torch.sigmoid(logits),
+                        required_padding=(0, 0, 0, 0),
+                    )
                     if W:
-                        wandb.log({"Images during Validation": [wandb.Image(
-                            grid, caption="Images, Targets, Predictions")]}, step=epoch)
+                        wandb.log(
+                            {
+                                "Images during Validation": [
+                                    wandb.Image(
+                                        grid, caption="Images, Targets, Predictions"
+                                    )
+                                ]
+                            },
+                            step=epoch,
+                        )
 
         if W:
-            wandb.log({"Loss on Validation Set (post Epoch)": sum_loss/len(val_loader),
-                      "IoU on Validation Set (post Epoch)": sum_IoU/len(val_loader)}, step=epoch)
+            wandb.log(
+                {
+                    "Loss on Validation Set (post Epoch)": sum_loss / len(val_loader),
+                    "IoU on Validation Set (post Epoch)": sum_IoU / len(val_loader),
+                },
+                step=epoch,
+            )
 
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     # Load parsed arguments from command lind
     args = parser.parse_args()
 
@@ -209,6 +295,7 @@ if __name__ == '__main__':
 
     if W:
         import wandb
+
         wandb.login()
 
     # Read in Metadata for the task chosen in command line
@@ -239,18 +326,27 @@ if __name__ == '__main__':
         architecture="Probabilistic U-Net",
         dataset=meta.description,
         N_for_metrics=forward_passes,
-        filters=num_filters
+        filters=num_filters,
     )
 
     if W:
         # Create the Training Run in Wandb
-        wandb.init(project="Style ProbUnet", group='Probabilistic Unets',
-                   job_type="Training", config=config, dir='/scratch/kmze')
+        wandb.init(
+            project="Style ProbUnet",
+            group="Probabilistic Unets",
+            job_type="Training",
+            config=config,
+            dir="/scratch/kmze",
+        )
         training_run_name = wandb.run.name
     else:
         # Use current timestamp as name e.g. 2021_12_11_14_46
-        training_run_name = str(datetime.now())[:16].replace(
-            " ", "_").replace("-", "_").replace(":", "_")
+        training_run_name = (
+            str(datetime.now())[:16]
+            .replace(" ", "_")
+            .replace("-", "_")
+            .replace(":", "_")
+        )
 
     print(f"Modelname: {training_run_name}")
     # Check for GPU
@@ -258,17 +354,24 @@ if __name__ == '__main__':
         print("\nThe model will be run on GPU.")
     else:
         print("\nNo GPU available!")
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"\nUsing the {meta.description} dataset.\n")
 
     # Set the random seed for reproducible experiments
     torch.manual_seed(230)
-    if device == 'cuda':
+    if device == "cuda":
         torch.cuda.manual_seed(230)
 
     # Initialize Probabilistic U-Net
-    prob_unet = ProbabilisticUnet(name=training_run_name, input_channels=meta.channels, num_classes=1,
-                                  num_filters=num_filters, latent_dim=6, no_convs_fcomb=4, beta=beta).to(device)
+    prob_unet = ProbabilisticUnet(
+        name=training_run_name,
+        input_channels=meta.channels,
+        num_classes=1,
+        num_filters=num_filters,
+        latent_dim=6,
+        no_convs_fcomb=4,
+        beta=beta,
+    ).to(device)
 
     # Count number of total parameters in the model and log
     pytorch_total_params = sum(p.numel() for p in prob_unet.parameters())
@@ -278,36 +381,35 @@ if __name__ == '__main__':
     # Note that Weight Decay and L2 Regularization are not the same (except for SGD) see paper: Hutter 2019 'Decoupled Weight Decay Regularization'
     # AdamW implements the correct weight decay as shown in their paper
     # Also Note: We use L2 regularization terms within the loss function for weight decay in the Encoders
-    opt = torch.optim.AdamW(prob_unet.parameters(),
-                            lr=learning_rate, weight_decay=weight_decay)
+    opt = torch.optim.AdamW(
+        prob_unet.parameters(), lr=learning_rate, weight_decay=weight_decay
+    )
 
     # Fetch Dataloaders
     train_loader, _ = get_dataloader(
-        task=what_task, split='train', batch_size=batch_size, shuffle=True)
+        task=what_task, split="train", batch_size=batch_size, shuffle=True
+    )
     val_loader, _ = get_dataloader(
-        task=what_task, split='val', batch_size=4, shuffle=False)
+        task=what_task, split="val", batch_size=4, shuffle=False
+    )
 
     # Empty GPU Cache
     torch.cuda.empty_cache()
     # Start Training
-    train(prob_unet, resume_epoch, epochs, opt, train_loader,
-          val_loader, save_checkpoints, transfer_model, meta, forward_passes, W=W)
+    train(
+        prob_unet,
+        resume_epoch,
+        epochs,
+        opt,
+        train_loader,
+        val_loader,
+        save_checkpoints,
+        transfer_model,
+        meta,
+        forward_passes,
+        W=W,
+    )
     print(f"Saved: {training_run_name} Data: {what_task} Model: Prob. U-Net")
     # End Training Run
     if W:
         wandb.finish
-
-    if args.testit == True:
-
-        # Create the Evaluation Run in Wandb
-        if W:
-            wandb.init(project="QUBIQ", group='Probabilistic Unets', job_type="Testing",
-                       notes=f'Testing model {training_run_name}', config=config, dir='/scratch/kmze')
-
-        # Get Dataset for Testing
-        test_loader, _ = get_dataloader(
-            task=what_task, split="val", batch_size=1, shuffle=False)
-
-        # Call evaluation script
-        evaluate_prob_unet.evaluate(model=prob_unet, test_loader=test_loader,
-                                    treshold_for_testing=0.5, metadata=meta, forward_passes=forward_passes, W=W)

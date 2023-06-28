@@ -19,6 +19,12 @@ All dependencies are listed the the file `requirements.txt`. You can set-up a ne
 pip install -r requirements.txt
 ```
 
+## Logging
+
+By default Wandb is used for logging. You can turn it off with the flag 
+```
+--W 0
+```
 ## Data
 
 Download the datasets by running the following commands from the home directory
