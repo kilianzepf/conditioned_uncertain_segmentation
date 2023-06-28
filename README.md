@@ -42,3 +42,13 @@ To train all 4 models on both datasets (=8 models total), with pre-tuned hyperpa
 
 Lorem Ipsum
 
+## Citation
+If our method is helpful in your research, please consider citing our ICLR 2023 paper:
+```
+@inproceedings{zepf2023label,
+  title={That Label's got Style: Handling Label Style Bias for Uncertain Image Segmentation},
+  author={Zepf, Kilian and Petersen, Eike and Frellsen, Jes and Feragen, Aasa},
+  booktitle={The Eleventh International Conference on Learning Representations},
+  year={2023}
+}
+```
