@@ -1,6 +1,6 @@
-# That Label's Got Style: Handling Label Style Bias for Uncertain Image Segmentation
+# That Label's Got Style: Handling Label Style Bias for Uncertain Image Segmentation (ICLR 2023)
 
-Kilian Zepf, Eike Petersen, Jes Frellsen, Aasa Feragen, ICLR 2023
+Kilian Zepf, Eike Petersen, Jes Frellsen, Aasa Feragen
 
 [[Paper on OpenReview]](https://openreview.net/pdf?id=wZ2SVhOTzBX)
 
