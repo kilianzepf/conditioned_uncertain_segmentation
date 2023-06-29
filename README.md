@@ -38,15 +38,12 @@ This will downoad the isic and PhC-U373 datasets and unpack them to `./data/`.
 
 ## Train (conditioned) uncertain segmentation models
 
-To train all 4 models on both datasets (=8 models total), with pre-tuned hyperparameters, execute the script:
+To train all 20 models (=10 models total for each dataset), with pre-tuned hyperparameters, execute the script:
 
 ```
-./scripts/train.sh
+./scripts/train_models.sh
 ```
 
-## Test the models and generate figures of the paper
-
-Lorem Ipsum
 
 ## Citation
 If our method is helpful for your own research, please consider citing our ICLR 2023 paper:
