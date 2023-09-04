@@ -1,6 +1,6 @@
-/data/isic3
-/data/phc_data
-/data/PhC-U373
+/data/isic3/isic256_3_style
+/data/phc_data/phc_data
+/data/phc_data/.DS_Store
 
 /utils/__pycache__
 /models/__pycache__
